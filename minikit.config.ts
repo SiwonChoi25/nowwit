@@ -8,14 +8,14 @@ const ROOT_URL =
  * @see {@link https://miniapps.farcaster.xyz/docs/guides/publishing}
  */
 export const minikitConfig = {
-  accountAssociation: {
-    header: "",
-    payload: "",
-    signature: ""
-  },
+    "accountAssociation": {
+      "header": "eyJmaWQiOjEzMjk2NDUsInR5cGUiOiJjdXN0b2R5Iiwia2V5IjoiMHhEOERDREY2QjAzMzlkMEZFZDlkMDhiMmMxYTYzZTk2NDRDRTRhMmE5In0",
+      "payload": "eyJkb21haW4iOiJub3d3aXQudmVyY2VsLmFwcCJ9",
+      "signature": "rN0Z4fnahwc5ksWpF9K2EAaoDU3FDNcUtP5X2DGtStoNiOHmFSGVd6Hx15+N9fKmwdrGYGga5cL6Gw4goEXU8hs="
+    },
   miniapp: {
     version: "1",
-    name: "Cubey", 
+    name: "NowWit", 
     subtitle: "Your AI Ad Companion", 
     description: "Ads",
     screenshotUrls: [`${ROOT_URL}/screenshot-portrait.png`],
