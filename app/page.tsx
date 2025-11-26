@@ -1,32 +1,9 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useQuickAuth, useMiniKit } from "@coinbase/onchainkit/minikit";
+import { useMiniKit } from "@coinbase/onchainkit/minikit";
 import { minikitConfig } from "../minikit.config";
 import styles from "./page.module.css";
-import {
-  Wallet,
-  ConnectWallet,
-  WalletDropdown,
-  WalletDropdownDisconnect,
-} from "@coinbase/onchainkit/wallet";
-
-import {
-  Identity,
-  Avatar,
-  Name,
-  EthBalance,
-} from "@coinbase/onchainkit/identity";
-
-interface AuthResponse {
-  success: boolean;
-  user?: {
-    fid: number;
-    issuedAt?: number;
-    expiresAt?: number;
-  };
-  message?: string;
-}
 
 // Spirit 카드 타입 (UI 용)
 type Rarity = "Common" | "Rare" | "Epic" | "Mythic";
@@ -55,9 +32,6 @@ const QUESTIONS = [
 export default function Home() {
   const { isFrameReady, setFrameReady, context } = useMiniKit();
 
-  const { data: authData, isLoading: isAuthLoading, error: authError } =
-    useQuickAuth<AuthResponse>("/api/auth", { method: "GET" });
-
   const [activeTab, setActiveTab] = useState<"home" | "collection">("home");
   const [currentQuestion, setCurrentQuestion] = useState<string>("");
   const [answer, setAnswer] = useState("");
@@ -79,8 +53,6 @@ export default function Home() {
       setCurrentQuestion(q);
     }
   }, [currentQuestion]);
-
-  const isAuthenticated = authData?.success && !!authData.user?.fid;
 
   const handleNewQuestion = () => {
     const q = QUESTIONS[Math.floor(Math.random() * QUESTIONS.length)];
@@ -110,11 +82,10 @@ export default function Home() {
       baseProject: "Uniswap on Base",
       baseUrl: "https://www.base.org/ecosystem",
       story:
-        "지금의 너처럼, 이 Spirit은 잔잔하지만 계속해서 변화하는 시장의 mood를 닮았어.",
+        "지금의 너처럼, 이 Insight는 잔잔하지만 계속해서 변화하는 시장의 mood를 닮았어.",
       createdAt: now,
     };
 
-    // 살짝 넣어준 딜레이 (로딩 느낌)
     setTimeout(() => {
       setCurrentCard(mockCard);
       setIsGenerating(false);
@@ -123,49 +94,10 @@ export default function Home() {
 
   const handleSaveToCollection = () => {
     if (!currentCard) return;
-    // 중복 저장 방지
     setCollection((prev) =>
       prev.find((c) => c.id === currentCard.id) ? prev : [currentCard, ...prev],
     );
   };
-
-  const renderConnectScreen = () => (
-    <div className={styles.container}>
-      <button className={styles.closeButton} type="button">
-        ✕
-      </button>
-
-      <div className={styles.content}>
-        <div className={styles.mainCard}>
-          <h1 className={styles.title}>{minikitConfig.miniapp.name}</h1>
-          <p className={styles.subtitle}>
-            Hey {context?.user?.displayName || "there"} 👋
-            <br />
-            지갑 연결을 완료하면, 오늘의 감정으로부터 탄생한
-            <br />
-            나만의 <span className={styles.highlight}>Crypto Spirit 카드</span>를
-            수집할 수 있어요.
-          </p>
-
-          <div className={styles.statusBox}>
-            {isAuthLoading && <p>지갑 연결 상태 확인 중...</p>}
-            {authError && (
-              <p className={styles.errorText}>
-                인증에 문제가 있어요. Farcaster에서 Mini App을 다시 열어주세요.
-              </p>
-            )}
-            {!isAuthLoading && !authData?.success && !authError && (
-              <p className={styles.mutedText}>
-                Farcaster에서 이 Mini App을 열고,
-                <br />
-                Frame 상단의 지갑 연결을 완료해주세요.
-              </p>
-            )}
-          </div>
-        </div>
-      </div>
-    </div>
-  );
 
   const renderHomeTab = () => (
     <div className={styles.content}>
@@ -175,11 +107,13 @@ export default function Home() {
             <p className={styles.greeting}>
               GM, {context?.user?.displayName || "builder"} 👋
             </p>
-            <h2 className={styles.title}>Today&apos;s Crypto Spirit</h2>
-            <p className={styles.subtitle}>
+            <h2 className={styles.title}>Today&apos;s NowWit</h2>
+            <p className={styles.cardSubtitle}>
               아래 질문에 솔직하게 답해주면,
               <br />
-              그 vibe에 어울리는 Web3 개념과 Base 프로젝트를 카드로 만들어줄게요.
+              그 vibe에 어울리는 Web3 개념과 Base 프로젝트를
+              <br />
+              한 장의 Insight 카드로 만들어줄게요.
             </p>
           </div>
         </div>
@@ -211,7 +145,7 @@ export default function Home() {
             onClick={handleGenerateSpirit}
             disabled={!answer.trim() || isGenerating}
           >
-            {isGenerating ? "Spirit 생성 중..." : "Crypto Spirit 생성하기"}
+            {isGenerating ? "Insight 생성 중..." : "Insight 카드 만들기"}
           </button>
         </div>
 
@@ -221,7 +155,7 @@ export default function Home() {
               <p className={styles.mutedText}>
                 위 질문에 답하고 버튼을 누르면,
                 <br />
-                여기에 오늘의 Crypto Spirit 카드가 나타날 거예요 ✨
+                여기에 오늘의 NowWit Insight 카드가 나타날 거예요 ✨
               </p>
             </div>
           )}
@@ -261,7 +195,7 @@ export default function Home() {
                 </div>
 
                 <div className={styles.spiritSection}>
-                  <p className={styles.sectionLabel}>Spirit Story</p>
+                <p className={styles.sectionLabel}>Insight Note</p>
                   <p className={styles.sectionText}>{currentCard.story}</p>
                 </div>
               </div>
@@ -272,7 +206,7 @@ export default function Home() {
                   className={styles.secondaryButton}
                   onClick={handleSaveToCollection}
                 >
-                  이 Spirit 컬렉션에 담기
+                  이 카드를 컬렉션에 담기
                 </button>
               </div>
             </div>
@@ -285,17 +219,17 @@ export default function Home() {
   const renderCollectionTab = () => (
     <div className={styles.content}>
       <div className={styles.mainCard}>
-        <h2 className={styles.title}>My Spirit Collection</h2>
+        <h2 className={styles.title}>NowWit Collection</h2>
         <p className={styles.subtitle}>
-          지금까지 만난 Crypto Spirit 카드들이에요.
+          지금까지 NowWit에서 만난 Insight 카드들이에요.
         </p>
 
         {collection.length === 0 && (
           <div className={styles.placeholderCard}>
             <p className={styles.mutedText}>
-              아직 수집한 Spirit 카드가 없어요.
+              아직 수집한 Insight 카드가 없어요.
               <br />
-              메인 화면에서 첫 번째 Spirit을 만들어볼까요? 🌟
+              Today 탭에서 첫 번째 Insight를 만들어볼까요? 🌟
             </p>
           </div>
         )}
@@ -352,46 +286,15 @@ export default function Home() {
     </nav>
   );
 
-  // 1. 지갑 인증 안 된 상태 → 연결 안내 화면
-  if (!isAuthenticated) {
-    return renderConnectScreen();
-  }
-
-  // 2. 인증된 상태 → 탭 구조 (메인 / 컬렉션)
+  // 그냥 바로 메인 + 컬렉션 탭 구조 렌더
   return (
     <div className={styles.container}>
       <button className={styles.closeButton} type="button">
         ✕
       </button>
-  
-      {/* 상단 헤더: 로고 + 지갑 버튼 */}
-      <header className={styles.headerRow}>
-        <div className={styles.logoArea}>
-          <span className={styles.logoEmoji}>🌀</span>
-          <span className={styles.logoText}>
-            {minikitConfig.miniapp.name || "Crypto Spirit"}
-          </span>
-        </div>
-  
-        <Wallet>
-          <ConnectWallet className={styles.walletButton}>
-            <Avatar className={styles.walletAvatar} />
-            <Name />
-          </ConnectWallet>
-  
-          <WalletDropdown>
-            <Identity className={styles.walletDropdownIdentity} hasCopyAddressOnClick>
-              <Avatar />
-              <Name />
-              <EthBalance />
-            </Identity>
-            <WalletDropdownDisconnect />
-          </WalletDropdown>
-        </Wallet>
-      </header>
-  
+
       {activeTab === "home" ? renderHomeTab() : renderCollectionTab()}
-  
+
       {renderBottomNav()}
     </div>
   );
