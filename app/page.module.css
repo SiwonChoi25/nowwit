@@ -36,9 +36,9 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;      /* 가운데 정렬 → 위쪽 정렬 */
   flex: 1;
-  padding: 2rem;
+  padding: 1rem 1rem 4.5rem;        /* 아래쪽 패딩 늘려서 네비랑 안 겹치게 */
 }
 
 /* 옛날 대기 화면용 (안 써도 무방하지만 남겨둠) */
@@ -159,9 +159,12 @@
 
 /* ---------- 메인 카드 ---------- */
 
+/* 기존 mainCard 대체 */
 .mainCard {
-  margin: 0.5rem 1.5rem 1.5rem;
-  padding: 1.25rem 1.2rem 1.3rem;
+  margin: 0.75rem auto 0;    /* 좌우 자동, 전체 폭 가운데 */
+  padding: 1rem 1rem 1.1rem;
+  max-width: 480px;          /* 모바일에서 너무 좁지 않게 */
+  width: 100%;
   border-radius: 20px;
   background: radial-gradient(circle at top, rgba(255, 255, 255, 0.04), transparent 55%);
   border: 1px solid rgba(255, 255, 255, 0.08);
@@ -173,23 +176,23 @@
 }
 
 .cardTitle {
-  font-size: 1.4rem;
+  font-size: 1.25rem;        /* 기존보다 조금만 줄이기 */
   font-weight: 700;
-  margin-top: 0.4rem;
+  margin-top: 0.3rem;
 }
 
 .cardSubtitle {
-  margin-top: 0.3rem;
-  font-size: 0.85rem;
-  line-height: 1.5;
+  margin-top: 0.2rem;
+  font-size: 0.8rem;
+  line-height: 1.45;
   opacity: 0.8;
 }
 
 /* ---------- 질문 & 답변 영역 ---------- */
 
 .questionCard {
-  margin-top: 1.2rem;
-  padding: 1rem 1rem 1.1rem;
+  margin-top: 0.9rem;
+  padding: 0.9rem 0.9rem 1rem;
   border-radius: 16px;
   background: rgba(0, 0, 0, 0.35);
   border: 1px solid rgba(255, 255, 255, 0.08);
@@ -199,15 +202,15 @@
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  gap: 0.75rem;
-  margin-bottom: 0.7rem;
+  gap: 0.6rem;
+  margin-bottom: 0.6rem;
 }
 
 .questionLabel {
   display: flex;
   align-items: flex-start;
-  gap: 0.45rem;
-  max-width: 75%;
+  gap: 0.4rem;
+  max-width: 80%;
 }
 
 .chip {
@@ -222,7 +225,7 @@
 }
 
 .questionText {
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   line-height: 1.5;
   text-align: left;
 }
@@ -243,9 +246,9 @@
   border-radius: 12px;
   border: 1px solid rgba(255, 255, 255, 0.15);
   background: rgba(0, 0, 0, 0.45);
-  padding: 0.8rem 0.9rem;
+  padding: 0.75rem 0.85rem;
   resize: none;
-  font-size: 0.86rem;
+  font-size: 0.8rem;
   line-height: 1.5;
   color: white;
 }
