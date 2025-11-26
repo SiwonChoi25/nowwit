@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from "react";
 import { useMiniKit } from "@coinbase/onchainkit/minikit";
-import { minikitConfig } from "../minikit.config";
 import styles from "./page.module.css";
 
 // Spirit 카드 타입 (UI 용)
