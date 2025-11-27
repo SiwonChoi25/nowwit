@@ -584,47 +584,43 @@
   margin-bottom: 0.15rem;
 }
 
-.lifeRow {
-  margin-top: 0.75rem;
-  margin-bottom: 0.25rem;
+.mutedText {
+  line-height: 1.4;
+  color: #d9d9d9;
+  text-align: center;
+  margin-top: 1rem;
+}
+
+/* 일일 카드 한도 UI */
+
+.lifeWrapper {
+  margin-top: 1.1rem;          /* 위랑 조금 더 띄우고 */
+  margin-bottom: 1.3rem;       /* 아래도 여유 */
+}
+
+.lifeHeader {
   display: flex;
+  justify-content: flex-start;
+  gap: 8px;
   align-items: center;
-  gap: 0.4rem;
   font-size: 0.8rem;
+  /* color: rgba(226, 232, 240, 0.95); */
+  margin-bottom: 0.25rem;
 }
 
 .lifeLabel {
-  opacity: 0.8;
-}
-
-.lifeIcons {
-  display: flex;
-  gap: 0.12rem;
-}
-
-.lifeFull,
-.lifeEmpty {
-  font-size: 0.9rem;
-}
-
-.lifeFull {
-  color: #fbbf24; /* 남은 별 = 노란색 */
-}
-
-.lifeEmpty {
-  color: rgba(148, 163, 184, 0.4); /* 소진된 별 = 흐린 회색 */
+  opacity: 0.9;
 }
 
 .lifeCount {
-  margin-left: 0.2rem;
-  font-size: 0.78rem;
-  opacity: 0.85;
+  opacity: 0.8;
 }
 
 .limitText {
-  margin-top: 0.15rem;
+  margin-top: 0.2rem;
   font-size: 0.78rem;
-  color: rgba(248, 250, 252, 0.8);
+  color: rgba(226, 232, 240, 0.9);
 }
+
 
 

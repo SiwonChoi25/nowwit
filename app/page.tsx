@@ -153,7 +153,7 @@ export default function Home() {
   
       if (!res.ok) {
         // 에러 바디를 굳이 쓰지 않아도 되면 그냥 고정 메시지로
-        throw new Error("Failed to generate insight");
+        throw new Error("Failed to generate card");
       }
   
       const data: InsightApiResponse = await res.json();
@@ -199,33 +199,26 @@ export default function Home() {
               <p className={styles.cardSubtitle}>
                 아래 질문에 솔직하게 답해주면,
                 <br />
-                그 vibe에 어울리는 Web3 개념과 Base 프로젝트를
+                그 답변에 어울리는 Web3 개념과 Base 프로젝트를
                 <br />
-                한 장의 Insight 카드로 만들어줄게요.
+                한 장의 카드로 만들어줄게요.
               </p>
             </div>
           </div>
   
           {/* 🔹 일일 한도 표시 영역 */}
-          <div className={styles.lifeRow}>
-            <span className={styles.lifeLabel}>오늘 남은 카드</span>
-            <div className={styles.lifeIcons}>
-              {Array.from({ length: DAILY_LIMIT }).map((_, i) => (
-                <span
-                  key={i}
-                  className={i < remaining ? styles.lifeFull : styles.lifeEmpty}
-                >
-                  ★
-                </span>
-              ))}
+          <div className={styles.lifeWrapper}>
+            <div className={styles.lifeHeader}>
+              <span className={styles.lifeLabel}>오늘 남은 카드</span>
+              <span className={styles.lifeCount}>
+                {remaining}/{DAILY_LIMIT}
+              </span>
             </div>
-            <span className={styles.lifeCount}>
-              {remaining} / {DAILY_LIMIT}
-            </span>
           </div>
+
           {isDailyLimitReached && (
             <p className={styles.limitText}>
-              오늘은 5장의 Insight 카드를 모두 모았어요. 내일 다시 만나요 ✨
+              오늘은 5장의 NowWit 카드를 모두 모았어요. 내일 다시 만나요 ✨
             </p>
           )}
   
@@ -244,7 +237,7 @@ export default function Home() {
   
             <textarea
               className={styles.answerInput}
-              placeholder="여기에 답을 적어줘요 :)"
+              placeholder="여기에 답을 적어주세요"
               value={answer}
               onChange={(e) => setAnswer(e.target.value)}
               rows={3}
@@ -259,8 +252,8 @@ export default function Home() {
               {isDailyLimitReached
                 ? "오늘 한도 소진"
                 : isGenerating
-                ? "Insight 생성 중..."
-                : "Insight 카드 만들기"}
+                ? "카드 생성 중..."
+                : "카드 만들기"}
             </button>
   
             {errorMessage && (
@@ -274,7 +267,7 @@ export default function Home() {
               <p className={styles.mutedText}>
                 위 질문에 답하고 버튼을 누르면,
                 <br />
-                여기에 오늘의 NowWit Insight 카드가 나타날 거예요 ✨
+                여기에 오늘의 NowWit 카드가 나타날 거예요 ✨
               </p>
             </div>
           )}
@@ -358,9 +351,9 @@ export default function Home() {
     return (
       <div className={styles.content}>
         <div className={styles.mainCard}>
-          <h2 className={styles.title}>NowWit Collection</h2>
+          <h2 className={styles.title}>Collection</h2>
           <p className={styles.subtitle}>
-            지금까지 NowWit에서 만난 Insight 카드들을
+            지금까지 NowWit에서 만난 카드들을
             <br />
             캘린더로 한눈에 볼 수 있어요.
           </p>
@@ -370,7 +363,7 @@ export default function Home() {
               {year}년 {month + 1}월
             </p>
             <p className={styles.calendarHint}>
-              점이 찍힌 날짜를 눌러서 그날의 Insight를 확인해보세요.
+              점이 찍힌 날짜를 눌러서 그날의 카드를 확인해보세요.
             </p>
           </div>
 
@@ -404,12 +397,12 @@ export default function Home() {
             {selectedDate ? (
               <>
                 <p className={styles.detailDateLabel}>
-                  {selectedDate} 의 Insight
+                  {selectedDate} 의 NowWit
                 </p>
 
                 {selectedCards.length === 0 && (
                   <p className={styles.mutedText}>
-                    아직 이 날짜에는 Insight 카드가 없어요.
+                    아직 이 날짜에는 카드가 없어요.
                   </p>
                 )}
 
@@ -451,9 +444,9 @@ export default function Home() {
               </>
             ) : (
               <p className={styles.mutedText}>
-                아직 수집한 Insight 카드가 없어요.
+                아직 수집한 카드가 없어요.
                 <br />
-                Today 탭에서 첫 번째 Insight를 만들어볼까요? 🌟
+                Today 탭에서 첫 번째 카드를 만들어볼까요? 🌟
               </p>
             )}
           </div>
