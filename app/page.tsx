@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useMiniKit } from "@coinbase/onchainkit/minikit";
 import styles from "./page.module.css";
 import { QUESTIONS } from "./data/questions";
@@ -27,6 +27,16 @@ interface SpiritCard {
   answer: string;
 }
 
+interface ConceptSummary {
+  concept: string;
+  conceptDescription: string;
+  baseProject: string;
+  baseUrl: string;
+  count: number;
+  firstDate: string; // 'YYYY-MM-DD'
+  lastDate: string;
+}
+
 interface InsightApiResponse {
   // /api/insight 가 돌려주는 card는
   // SpiritCard에서 createdAt, question, answer 를 제외한 형태라고 가정
@@ -45,8 +55,8 @@ const getLocalDateKey = (d: Date) =>
     d.getDate(),
   ).padStart(2, "0")}`;
 
-const LOCAL_STORAGE_KEY = "nowwit:collection";
 
+const LOCAL_STORAGE_KEY = "nowwit:collection";
 
 // =================== Home 컴포넌트 ===================
 
@@ -60,12 +70,46 @@ export default function Home() {
   const [currentCard, setCurrentCard] = useState<SpiritCard | null>(null);
   const [collection, setCollection] = useState<SpiritCard[]>([]);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [collectionMode, setCollectionMode] =
+    useState<"calendar" | "concepts">("calendar");
 
   // 오늘 날짜 (로컬 기준)
   const todayKey = getLocalDateKey(new Date());
 
   // 캘린더용 선택 날짜
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
+
+  const conceptSummaries: ConceptSummary[] = useMemo(() => {
+    if (collection.length === 0) return [];
+  
+    const byConcept: Record<string, ConceptSummary> = {};
+  
+    collection.forEach((card: SpiritCard) => {
+      const dateKey = getLocalDateKey(new Date(card.createdAt)); // ✅ date가 아니라 createdAt 사용
+  
+      const existing = byConcept[card.concept];
+  
+      if (!existing) {
+        byConcept[card.concept] = {
+          concept: card.concept,
+          conceptDescription: card.conceptDescription,
+          baseProject: card.baseProject,
+          baseUrl: card.baseUrl,
+          firstDate: dateKey,
+          lastDate: dateKey,
+          count: 1,
+        };
+      } else {
+        existing.count += 1;
+        if (dateKey < existing.firstDate) existing.firstDate = dateKey;
+        if (dateKey > existing.lastDate) existing.lastDate = dateKey;
+      }
+    });
+  
+    return Object.values(byConcept).sort((a, b) =>
+      a.concept.localeCompare(b.concept, "ko"),
+    );
+  }, [collection]);
 
   // MiniKit 초기화
   useEffect(() => {
@@ -199,7 +243,7 @@ export default function Home() {
               <p className={styles.cardSubtitle}>
                 아래 질문에 솔직하게 답해주면,
                 <br />
-                그 답변에 어울리는 Web3 개념과 Base 프로젝트를
+                그 답변에 어울리는 Web3 개념과 프로젝트를
                 <br />
                 한 장의 카드로 만들어줄게요.
               </p>
@@ -275,22 +319,21 @@ export default function Home() {
           {currentCard && (
             <div className={styles.spiritCard}>
               <div className={styles.spiritHeader}>
-                <div className={styles.spiritTitleRow}>
-                  <span className={styles.spiritEmoji}>{currentCard.emoji}</span>
-                  <div className={styles.spiritTitleTexts}>
-                    <p className={styles.spiritName}>{currentCard.spiritName}</p>
-                    <p
-                      className={`${styles.spiritRarity} ${
-                        styles["rarity" + currentCard.rarity] || ""
-                      }`}
-                    >
-                      {currentCard.rarity}
-                    </p>
+                <div className={styles.spiritHeaderLeft}>
+                  <div className={styles.spiritTitleRow}>
+                    <span className={styles.spiritEmoji}>{currentCard.emoji}</span>
+                    <span className={styles.spiritName}>{currentCard.spiritName}</span>
                   </div>
+                  <span className={styles.spiritRarity}>{currentCard.rarity}</span>
                 </div>
-                <p className={styles.spiritDate}>
-                  {new Date(currentCard.createdAt).toLocaleDateString("ko-KR")}
-                </p>
+
+                <span className={styles.spiritDate}>
+                  {new Date(currentCard.createdAt).toLocaleDateString("ko-KR", {
+                    year: "numeric",
+                    month: "2-digit",
+                    day: "2-digit",
+                  })}
+                </span>
               </div>
 
               <div className={styles.spiritBody}>
@@ -303,7 +346,7 @@ export default function Home() {
                 </div>
 
                 <div className={styles.spiritSection}>
-                  <p className={styles.sectionLabel}>Base 생태계 예시</p>
+                  <p className={styles.sectionLabel}>예시</p>
                   <p className={styles.sectionTitle}>
                     {currentCard.baseProject}
                   </p>
@@ -337,17 +380,17 @@ export default function Home() {
     const today = new Date();
     const year = today.getFullYear();
     const month = today.getMonth(); // 0~11
-
+  
     const lastDay = new Date(year, month + 1, 0);
     const daysInMonth = lastDay.getDate();
-
+  
     const days: Date[] = [];
     for (let d = 1; d <= daysInMonth; d++) {
       days.push(new Date(year, month, d));
     }
-
+  
     const selectedCards = selectedDate ? cardsByDate[selectedDate] ?? [] : [];
-
+  
     return (
       <div className={styles.content}>
         <div className={styles.mainCard}>
@@ -355,105 +398,400 @@ export default function Home() {
           <p className={styles.subtitle}>
             지금까지 NowWit에서 만난 카드들을
             <br />
-            캘린더로 한눈에 볼 수 있어요.
+            날짜별·개념별로 돌아볼 수 있어요.
           </p>
-
-          <div className={styles.calendarHeader}>
-            <p className={styles.calendarMonth}>
-              {year}년 {month + 1}월
-            </p>
-            <p className={styles.calendarHint}>
-              점이 찍힌 날짜를 눌러서 그날의 카드를 확인해보세요.
-            </p>
+  
+          {/* 캘린더 / 개념 도감 토글 */}
+          <div className={styles.collectionModeToggle}>
+            <button
+              type="button"
+              className={
+                collectionMode === "calendar"
+                  ? `${styles.modeButton} ${styles.modeButtonActive}`
+                  : styles.modeButton
+              }
+              onClick={() => setCollectionMode("calendar")}
+            >
+              📆 캘린더
+            </button>
+            <button
+              type="button"
+              className={
+                collectionMode === "concepts"
+                  ? `${styles.modeButton} ${styles.modeButtonActive}`
+                  : styles.modeButton
+              }
+              onClick={() => setCollectionMode("concepts")}
+            >
+              📚 개념 도감
+            </button>
           </div>
-
-          <div className={styles.calendarGrid}>
-            {days.map((day) => {
-              const key = getLocalDateKey(day);
-              const hasCards = !!cardsByDate[key];
-              const isSelected = selectedDate === key;
-
-              return (
-                <button
-                  key={key}
-                  type="button"
-                  onClick={() => hasCards && setSelectedDate(key)}
-                  className={
-                    isSelected
-                      ? `${styles.calendarCell} ${styles.calendarCellSelected}`
-                      : styles.calendarCell
-                  }
-                >
-                  <span className={styles.calendarDayNumber}>
-                    {day.getDate()}
-                  </span>
-                  {hasCards && <span className={styles.calendarDot} />}
-                </button>
-              );
-            })}
-          </div>
-
-          <div className={styles.calendarDetail}>
-            {selectedDate ? (
-              <>
-                <p className={styles.detailDateLabel}>
-                  {selectedDate} 의 NowWit
+  
+          {/* --- 캘린더 모드 --- */}
+          {collectionMode === "calendar" && (
+            <>
+              <div className={styles.calendarHeader}>
+                <p className={styles.calendarMonth}>
+                  {year}년 {month + 1}월
                 </p>
-
-                {selectedCards.length === 0 && (
+                <p className={styles.calendarHint}>
+                  점이 찍힌 날짜를 눌러서 그날의 카드를 확인해보세요.
+                </p>
+              </div>
+  
+              <div className={styles.calendarGrid}>
+                {days.map((day) => {
+                  const key = getLocalDateKey(day);
+                  const hasCards = !!cardsByDate[key];
+                  const isSelected = selectedDate === key;
+  
+                  return (
+                    <button
+                      key={key}
+                      type="button"
+                      onClick={() => hasCards && setSelectedDate(key)}
+                      className={
+                        isSelected
+                          ? `${styles.calendarCell} ${styles.calendarCellSelected}`
+                          : styles.calendarCell
+                      }
+                    >
+                      <span className={styles.calendarDayNumber}>
+                        {day.getDate()}
+                      </span>
+                      {hasCards && <span className={styles.calendarDot} />}
+                    </button>
+                  );
+                })}
+              </div>
+  
+              <div className={styles.calendarDetail}>
+                {selectedDate ? (
+                  <>
+                    <p className={styles.detailDateLabel}>
+                      {selectedDate} 의 NowWit
+                    </p>
+  
+                    {selectedCards.length === 0 && (
+                      <p className={styles.mutedText}>
+                        아직 이 날짜에는 카드가 없어요.
+                      </p>
+                    )}
+  
+                    {selectedCards.map((card) => (
+                      <div key={card.id} className={styles.detailCard}>
+                        <div className={styles.spiritHeader}>
+                          <div className={styles.spiritHeaderLeft}>
+                            <div className={styles.spiritTitleRow}>
+                              <span className={styles.spiritEmoji}>
+                                {card.emoji}
+                              </span>
+                              <span className={styles.spiritName}>
+                                {card.spiritName}
+                              </span>
+                            </div>
+                            <span className={styles.spiritRarity}>
+                              {card.rarity}
+                            </span>
+                          </div>
+  
+                          <span className={styles.spiritDate}>
+                            {new Date(card.createdAt).toLocaleDateString("ko-KR", {
+                              year: "numeric",
+                              month: "2-digit",
+                              day: "2-digit",
+                            })}
+                          </span>
+                        </div>
+  
+                        {/* Q & A */}
+                        <div className={styles.detailQA}>
+                          <p className={styles.detailLabel}>Question</p>
+                          <p className={styles.detailText}>{card.question}</p>
+                          <p className={styles.detailLabel}>My Answer</p>
+                          <p className={styles.detailText}>{card.answer}</p>
+                        </div>
+  
+                        {/* Web3 개념 블록 */}
+                        <div className={styles.detailConceptBlock}>
+                          <p className={styles.detailLabel}>Web3 Insight</p>
+                          <p className={styles.detailConceptTitle}>
+                            {card.concept}
+                          </p>
+                          <p className={styles.detailText}>
+                            {card.conceptDescription}
+                          </p>
+  
+                          <p className={styles.detailLabel}>Example</p>
+                          <p className={styles.detailText}>{card.baseProject}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </>
+                ) : (
                   <p className={styles.mutedText}>
-                    아직 이 날짜에는 카드가 없어요.
+                    아직 수집한 카드가 없어요.
+                    <br />
+                    Today 탭에서 첫 번째 카드를 만들어볼까요? 🌟
                   </p>
                 )}
-
-                {selectedCards.map((card) => (
-                  <div key={card.id} className={styles.detailCard}>
-                  <div className={styles.detailCardHeader}>
-                    <span className={styles.spiritEmoji}>{card.emoji}</span>
+              </div>
+            </>
+          )}
+  
+          {/* --- 개념 도감 모드 --- */}
+          {collectionMode === "concepts" && (
+            <div className={styles.conceptList}>
+              {conceptSummaries.length === 0 && (
+                <p className={styles.mutedText}>
+                  아직 배운 Web3 개념이 없어요.
+                  <br />
+                  Today 탭에서 첫 카드를 만들어볼까요? ✨
+                </p>
+              )}
+  
+              {conceptSummaries.map((c) => (
+                <div key={c.concept} className={styles.conceptRow}>
+                  <div className={styles.conceptRowHeader}>
                     <div>
-                      <p className={styles.spiritName}>{card.spiritName}</p>
-                      <p
-                        className={`${styles.spiritRarity} ${
-                          styles["rarity" + card.rarity] || ""
-                        }`}
-                      >
-                        {card.rarity}
+                      <p className={styles.conceptName}>{c.concept}</p>
+                      <p className={styles.conceptDates}>
+                        {c.firstDate === c.lastDate
+                          ? c.firstDate
+                          : `${c.firstDate} ~ ${c.lastDate}`}
+                        {" · "}
+                        총 {c.count}장
                       </p>
                     </div>
+                    <a
+                      href={c.baseUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      className={styles.conceptLink}
+                    >
+                      {c.baseProject} ↗
+                    </a>
                   </div>
-                
-                  {/* Q & A */}
-                  <div className={styles.detailQA}>
-                    <p className={styles.detailLabel}>Question</p>
-                    <p className={styles.detailText}>{card.question}</p>
-                    <p className={styles.detailLabel}>My Answer</p>
-                    <p className={styles.detailText}>{card.answer}</p>
-                  </div>
-                
-                  {/* Web3 개념 블록 */}
-                  <div className={styles.detailConceptBlock}>
-                    <p className={styles.detailLabel}>Web3 Insight</p>
-                    <p className={styles.detailConceptTitle}>{card.concept}</p>
-                    <p className={styles.detailText}>{card.conceptDescription}</p>
-                
-                    <p className={styles.detailLabel}>Base Example</p>
-                    <p className={styles.detailText}>{card.baseProject}</p>
-                  </div>
+  
+                  <p className={styles.conceptDescription}>
+                    {c.conceptDescription}
+                  </p>
                 </div>
-                ))}
-              </>
-            ) : (
-              <p className={styles.mutedText}>
-                아직 수집한 카드가 없어요.
-                <br />
-                Today 탭에서 첫 번째 카드를 만들어볼까요? 🌟
-              </p>
-            )}
-          </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
     );
   };
+  
+
+  // const renderCollectionTab = () => {
+  //   // 오늘 기준 달력 (현재 월)
+  //   const today = new Date();
+  //   const year = today.getFullYear();
+  //   const month = today.getMonth(); // 0~11
+
+  //   const lastDay = new Date(year, month + 1, 0);
+  //   const daysInMonth = lastDay.getDate();
+
+  //   const days: Date[] = [];
+  //   for (let d = 1; d <= daysInMonth; d++) {
+  //     days.push(new Date(year, month, d));
+  //   }
+
+  //   const selectedCards = selectedDate ? cardsByDate[selectedDate] ?? [] : [];
+
+  //   return (
+  //     <div className={styles.content}>
+  //       <div className={styles.mainCard}>
+  //         <h2 className={styles.title}>Collection</h2>
+  //         <p className={styles.subtitle}>
+  //           지금까지 NowWit에서 만난 카드들을
+  //           <br />
+  //           날짜별·개념별로 돌아볼 수 있어요.
+  //         </p>
+
+  //         {/* 캘린더 / 개념 도감 토글 */}
+  //         <div className={styles.collectionModeToggle}>
+  //           <button
+  //             type="button"
+  //             className={
+  //               collectionMode === "calendar"
+  //                 ? `${styles.modeButton} ${styles.modeButtonActive}`
+  //                 : styles.modeButton
+  //             }
+  //             onClick={() => setCollectionMode("calendar")}
+  //           >
+  //             📆 캘린더
+  //           </button>
+  //           <button
+  //             type="button"
+  //             className={
+  //               collectionMode === "concepts"
+  //                 ? `${styles.modeButton} ${styles.modeButtonActive}`
+  //                 : styles.modeButton
+  //             }
+  //             onClick={() => setCollectionMode("concepts")}
+  //           >
+  //             📚 개념 도감
+  //           </button>
+  //         </div>
+
+  //         {collectionMode === "calendar" && (
+  //           <div className={styles.content}>
+  //             <div className={styles.mainCard}>
+  //               <h2 className={styles.title}>Collection</h2>
+  //               <p className={styles.subtitle}>
+  //                 지금까지 NowWit에서 만난 카드들을
+  //                 <br />
+  //                 캘린더로 한눈에 볼 수 있어요.
+  //               </p>
+      
+  //               <div className={styles.calendarHeader}>
+  //                 <p className={styles.calendarMonth}>
+  //                   {year}년 {month + 1}월
+  //                 </p>
+  //                 <p className={styles.calendarHint}>
+  //                   점이 찍힌 날짜를 눌러서 그날의 카드를 확인해보세요.
+  //                 </p>
+  //               </div>
+      
+  //               <div className={styles.calendarGrid}>
+  //                 {days.map((day) => {
+  //                   const key = getLocalDateKey(day);
+  //                   const hasCards = !!cardsByDate[key];
+  //                   const isSelected = selectedDate === key;
+      
+  //                   return (
+  //                     <button
+  //                       key={key}
+  //                       type="button"
+  //                       onClick={() => hasCards && setSelectedDate(key)}
+  //                       className={
+  //                         isSelected
+  //                           ? `${styles.calendarCell} ${styles.calendarCellSelected}`
+  //                           : styles.calendarCell
+  //                       }
+  //                     >
+  //                       <span className={styles.calendarDayNumber}>
+  //                         {day.getDate()}
+  //                       </span>
+  //                       {hasCards && <span className={styles.calendarDot} />}
+  //                     </button>
+  //                   );
+  //                 })}
+  //               </div>
+      
+  //               <div className={styles.calendarDetail}>
+  //                 {selectedDate ? (
+  //                   <>
+  //                     <p className={styles.detailDateLabel}>
+  //                       {selectedDate} 의 NowWit
+  //                     </p>
+      
+  //                     {selectedCards.length === 0 && (
+  //                       <p className={styles.mutedText}>
+  //                         아직 이 날짜에는 카드가 없어요.
+  //                       </p>
+  //                     )}
+      
+  //                     {selectedCards.map((card) => (
+  //                       <div key={card.id} className={styles.detailCard}>
+  //                       <div className={styles.spiritHeader}>
+  //                         <div className={styles.spiritHeaderLeft}>
+  //                           <div className={styles.spiritTitleRow}>
+  //                             <span className={styles.spiritEmoji}>{card.emoji}</span>
+  //                             <span className={styles.spiritName}>{card.spiritName}</span>
+  //                           </div>
+  //                           <span className={styles.spiritRarity}>{card.rarity}</span>
+  //                         </div>
+      
+  //                         <span className={styles.spiritDate}>
+  //                           {new Date(card.createdAt).toLocaleDateString("ko-KR", {
+  //                             year: "numeric",
+  //                             month: "2-digit",
+  //                             day: "2-digit",
+  //                           })}
+  //                         </span>
+  //                       </div>
+                      
+  //                       {/* Q & A */}
+  //                       <div className={styles.detailQA}>
+  //                         <p className={styles.detailLabel}>Question</p>
+  //                         <p className={styles.detailText}>{card.question}</p>
+  //                         <p className={styles.detailLabel}>My Answer</p>
+  //                         <p className={styles.detailText}>{card.answer}</p>
+  //                       </div>
+                      
+  //                       {/* Web3 개념 블록 */}
+  //                       <div className={styles.detailConceptBlock}>
+  //                         <p className={styles.detailLabel}>Web3 Insight</p>
+  //                         <p className={styles.detailConceptTitle}>{card.concept}</p>
+  //                         <p className={styles.detailText}>{card.conceptDescription}</p>
+                      
+  //                         <p className={styles.detailLabel}>Example</p>
+  //                         <p className={styles.detailText}>{card.baseProject}</p>
+  //                       </div>
+  //                     </div>
+  //                     ))}
+  //                   </>
+  //                 ) : (
+  //                   <p className={styles.mutedText}>
+  //                     아직 수집한 카드가 없어요.
+  //                     <br />
+  //                     Today 탭에서 첫 번째 카드를 만들어볼까요? 🌟
+  //                   </p>
+  //                 )}
+  //               </div>
+  //             </div>
+  //           </div>
+  //         )}
+
+  //         {collectionMode === "concepts" && (
+  //           <div className={styles.conceptList}>
+  //             {conceptSummaries.length === 0 && (
+  //               <p className={styles.mutedText}>
+  //                 아직 배운 Web3 개념이 없어요.
+  //                 <br />
+  //                 Today 탭에서 첫 카드를 만들어볼까요? ✨
+  //               </p>
+  //             )}
+
+  //             {conceptSummaries.map((c) => (
+  //               <div key={c.concept} className={styles.conceptRow}>
+  //                 <div className={styles.conceptRowHeader}>
+  //                   <div>
+  //                     <p className={styles.conceptName}>{c.concept}</p>
+  //                     <p className={styles.conceptDates}>
+  //                       {c.firstDate === c.lastDate
+  //                         ? c.firstDate
+  //                         : `${c.firstDate} ~ ${c.lastDate}`}
+  //                       {" · "}
+  //                       총 {c.count}장
+  //                     </p>
+  //                   </div>
+  //                   <a
+  //                     href={c.baseUrl}
+  //                     target="_blank"
+  //                     rel="noreferrer"
+  //                     className={styles.conceptLink}
+  //                   >
+  //                     {c.baseProject} ↗
+  //                   </a>
+  //                 </div>
+
+  //                 <p className={styles.conceptDescription}>
+  //                   {c.conceptDescription}
+  //                 </p>
+  //               </div>
+  //             ))}
+  //           </div>
+  //         )}
+  //       </div>
+  //     </div>
+  //   );
+  // };
 
   const renderBottomNav = () => (
     <nav className={styles.bottomNav}>
@@ -486,10 +824,6 @@ export default function Home() {
 
   return (
     <div className={styles.container}>
-      <button className={styles.closeButton} type="button">
-        ✕
-      </button>
-
       {activeTab === "home" ? renderHomeTab() : renderCollectionTab()}
 
       {renderBottomNav()}

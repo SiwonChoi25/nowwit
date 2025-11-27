@@ -1,458 +1,483 @@
-/* ---------- 공통 레이아웃 ---------- */
+/* ====== 전체 레이아웃 ====== */
 
 .container {
-  display: flex;
-  flex-direction: column;
   min-height: 100vh;
-  background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #16213e 100%);
-  color: white;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  /* 더 깊은 앱 느낌 그라데이션 */
+  background:
+    radial-gradient(circle at 0% 0%, #20283f 0%, transparent 55%),
+    radial-gradient(circle at 100% 100%, #1b2850 0%, transparent 55%),
+    #050715;
+  color: #f9fafb;
   position: relative;
+  padding-bottom: 80px; /* bottom nav 공간 */
 }
 
-.closeButton {
-  position: absolute;
-  top: 1rem;
-  right: 1rem;
-  background: none;
-  border: 2px solid rgba(255, 255, 255, 0.3);
-  color: white;
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.2rem;
-  transition: all 0.3s ease;
-}
 
-.closeButton:hover {
-  background: rgba(255, 255, 255, 0.1);
-  border-color: rgba(255, 255, 255, 0.5);
-}
-
+/* 가운데 콘텐츠 영역 */
 .content {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: flex-start;      /* 가운데 정렬 → 위쪽 정렬 */
-  flex: 1;
-  padding: 1rem 1rem 5rem;        /* 아래쪽 패딩 늘려서 네비랑 안 겹치게 */
-}
-
-/* 옛날 대기 화면용 (안 써도 무방하지만 남겨둠) */
-.waitlistForm {
-  text-align: center;
-  max-width: 600px;
   width: 100%;
-}
-
-.title {
-  font-size: clamp(2rem, 4.5vw, 3rem);
-  font-weight: 700;
-  letter-spacing: -0.02em;
-  margin-bottom: 1rem;
-  background: linear-gradient(135deg, #ffffff 0%, #e0e0e0 100%);
-  background-clip: text;
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  text-shadow: 0 0 30px rgba(255, 255, 255, 0.3);
-}
-
-.subtitle {
-  font-size: 1.2rem;
-  line-height: 1.6;
-  margin-bottom: 3rem;
-  color: rgba(255, 255, 255, 0.8);
-  font-weight: 300;
-}
-
-.form {
+  max-width: 460px;
+  margin-top: 60px;
   display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 1rem;
-  width: 100%;
+  justify-content: center;
 }
 
-.emailInput {
-  width: 100%;
-  max-width: 400px;
-  padding: 1rem 1.5rem;
-  font-size: 1rem;
-  background: rgba(255, 255, 255, 0.1);
-  border: 2px solid rgba(255, 255, 255, 0.2);
-  border-radius: 12px;
-  color: white;
-  backdrop-filter: blur(10px);
-  transition: all 0.3s ease;
-}
+/* ====== 메인 카드 (Glassmorphism) ====== */
 
-.emailInput::placeholder {
-  color: rgba(255, 255, 255, 0.5);
-}
-
-.emailInput:focus {
-  outline: none;
-  border-color: rgba(255, 255, 255, 0.4);
-  background: rgba(255, 255, 255, 0.15);
-  box-shadow: 0 0 20px rgba(255, 255, 255, 0.1);
-}
-
-.error {
-  color: #ff6b6b;
-  font-size: 0.9rem;
-  margin: 0;
-}
-
-.joinButton {
-  background: #f7d954;
-  color: #000;
-  border: none;
-  padding: 1rem 3rem;
-  font-size: 1rem;
-  font-weight: 700;
-  border-radius: 12px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  margin-top: 1rem;
-  box-shadow: 0 4px 20px rgba(247, 217, 84, 0.3);
-}
-
-.joinButton:hover {
-  background: #f5d73a;
-  transform: translateY(-2px);
-  box-shadow: 0 6px 25px rgba(247, 217, 84, 0.4);
-}
-
-/* ---------- 상단 앱 헤더 ---------- */
-
-.appHeader {
-  padding: 1.2rem 1.5rem 0.8rem;
-}
-
-.appLogo {
-  display: flex;
-  align-items: center;
-  gap: 0.45rem;
-  font-weight: 600;
-  font-size: 0.95rem;
-}
-
-.appEmoji {
-  font-size: 1.1rem;
-}
-
-.appName {
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
-.appTagline {
-  margin-top: 0.4rem;
-  font-size: 0.8rem;
-  opacity: 0.75;
-}
-
-/* ---------- 메인 카드 ---------- */
-
-/* 기존 mainCard 대체 */
 .mainCard {
-  margin: 0.75rem auto 0;    /* 좌우 자동, 전체 폭 가운데 */
-  padding: 1rem 1rem 1.1rem;
-  max-width: 480px;          /* 모바일에서 너무 좁지 않게 */
   width: 100%;
-  border-radius: 20px;
-  background: radial-gradient(circle at top, rgba(255, 255, 255, 0.04), transparent 55%);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  text-align: left;
+  border-radius: 26px;
+  padding: 22px 20px 20px;
+  margin: 0 16px;
+  background: rgba(15, 23, 42, 0.88);
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  box-shadow:
+    0 18px 45px rgba(0, 0, 0, 0.65),
+    0 0 60px rgba(129, 140, 248, 0.18);
+  backdrop-filter: blur(18px);
 }
 
-.cardHeader {
-  margin-bottom: 1rem;
+/* 헤더 영역 */
+
+/* 헤더 영역 – 박스 없애고 자연스럽게 */
+.headerRow {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 18px;
+  padding-bottom: 12px;
 }
 
-.cardTitle {
-  font-size: 1.25rem;        /* 기존보다 조금만 줄이기 */
-  font-weight: 700;
-  margin-top: 0.3rem;
-}
-
-.cardSubtitle {
-  margin-top: 0.2rem;
-  font-size: 0.8rem;
-  line-height: 1.45;
+/* 헤더 아래에만 얇은 그라데이션 라인 */
+.headerRow::after {
+  content: "";
+  position: absolute;
+  left: -4px;
+  right: -4px;
+  bottom: 0;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    rgba(148, 163, 184, 0),
+    rgba(148, 163, 184, 0.9),
+    rgba(148, 163, 184, 0)
+  );
   opacity: 0.8;
 }
 
-/* ---------- 질문 & 답변 영역 ---------- */
+/* GM, builder 배지 – 작게, 둥글게만 */
+.greeting {
+  display: inline-flex;
+  align-items: center;
+  align-self: flex-start;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: rgba(15, 23, 42, 0.75);
+  border: 1px solid rgba(148, 163, 184, 0.6);
+  font-size: 0.78rem;
+  color: rgba(226, 232, 240, 0.95);
+  gap: 4px;
+  box-shadow: 0 0 12px rgba(15, 23, 42, 0.8);
+}
+
+/* 타이틀 – 지금 스타일 유지하되 살짝만 줄임 */
+.title {
+  font-size: clamp(1.8rem, 5.4vw, 2.2rem);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1.15;
+  margin-top: 6px;
+  margin-bottom: 4px;
+  background: linear-gradient(120deg, #7c94f5, #ffffff );
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-shadow:
+    0 0 18px rgba(145, 155, 246, 0.55),
+    /* 0 0 36px rgba(59, 130, 246, 0.4); */
+}
+
+/* 설명 – 왼쪽 라인만 살짝, 박스는 X */
+.cardSubtitle,
+.subtitle {
+  margin-top: 10px;
+  margin-bottom: 4px;
+  padding-left: 10px;
+  font-size: 0.84rem;
+  line-height: 1.6;
+  color: rgba(209, 213, 219, 0.96);
+  max-width: 95%;
+  position: relative;
+}
+
+.cardSubtitle::before,
+.subtitle::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 3px;
+  bottom: 3px;
+  width: 2px;
+  border-radius: 999px;
+  background: linear-gradient(to bottom, #bfdbfe, #a855f7);
+  opacity: 0.8;
+}
+
+/* ====== 오늘 남은 카드 표시 ====== */
+
+.lifeWrapper {
+  margin-top: 12px;
+  margin-bottom: 10px;
+}
+
+.lifeHeader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.8rem;
+  color: rgba(226, 232, 240, 0.95);
+}
+
+.lifeLabel {
+  opacity: 0.9;
+}
+
+.lifeCount {
+  opacity: 0.85;
+}
+
+.limitText {
+  margin-top: 4px;
+  font-size: 0.78rem;
+  color: rgba(226, 232, 240, 0.9);
+}
+
+/* ====== 질문 카드 ====== */
 
 .questionCard {
-  margin-top: 0.9rem;
-  padding: 0.9rem 0.9rem 1rem;
-  border-radius: 16px;
-  background: rgba(0, 0, 0, 0.35);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  margin-top: 18px;
+  padding: 14px 14px 16px;
+  border-radius: 20px;
+  background: radial-gradient(circle at top, rgba(30, 64, 175, 0.45), rgba(15, 23, 42, 0.98));
+  border: 1px solid rgba(129, 140, 248, 0.6);
+  box-shadow: 0 14px 35px rgba(30, 64, 175, 0.5);
 }
 
 .questionHeader {
   display: flex;
+  align-items: center;
   justify-content: space-between;
-  align-items: flex-start;
-  gap: 0.6rem;
-  margin-bottom: 0.6rem;
-}
-
-.questionLabel {
-  display: flex;
-  align-items: flex-start;
-  gap: 0.4rem;
-  max-width: 80%;
+  margin-bottom: 8px;
 }
 
 .chip {
-  width: 22px;
-  height: 22px;
+  width: 24px;
+  height: 24px;
   border-radius: 999px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  font-size: 0.75rem;
-  background: rgba(255, 255, 255, 0.14);
+  font-size: 0.78rem;
+  background: rgba(15, 23, 42, 0.85);
+  border: 1px solid rgba(148, 163, 184, 0.6);
 }
 
 .questionText {
-  font-size: 0.85rem;
-  line-height: 1.5;
-  text-align: left;
+  flex: 1;
+  margin: 0 10px;
+  font-size: 0.92rem;
+  font-weight: 500;
+  text-align: center;
+  color: #e5e7eb;
 }
 
 .linkButton {
   font-size: 0.8rem;
-  opacity: 0.8;
-  white-space: nowrap;
+  color: rgba(209, 213, 219, 0.9);
   background: none;
   border: none;
-  color: inherit;
   cursor: pointer;
 }
+
+/* 답변 입력 */
 
 .answerInput {
   width: 100%;
-  margin-top: 0.35rem;
-  border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  background: rgba(0, 0, 0, 0.45);
-  padding: 0.75rem 0.85rem;
+  margin-top: 10px;
+  border-radius: 14px;
+  border: 1px solid rgba(148, 163, 184, 0.6);
+  background: rgba(15, 23, 42, 0.95);
+  padding: 12px 14px;
   resize: none;
-  font-size: 0.8rem;
+  font-size: 0.92rem;
   line-height: 1.5;
-  color: white;
+  color: #e5e7eb;
+  font-family: inherit;
 }
 
-/* 생성 버튼 */
+.answerInput::placeholder {
+  color: rgba(148, 163, 184, 0.85);
+}
+
+.answerInput:focus {
+  outline: none;
+  border-color: rgba(129, 140, 248, 0.8);
+  box-shadow: 0 0 0 1px rgba(129, 140, 248, 0.6);
+}
+
+/* 메인 CTA 버튼 */
 
 .primaryButton {
-  margin-top: 0.8rem;
-  margin-bottom: 0.2rem;
+  margin-top: 12px;
   width: 100%;
   border-radius: 999px;
   border: none;
-  padding: 0.6rem 0.8rem;
-  font-size: 0.85rem;
+  padding: 13px 0;
+  font-size: 0.98rem;
   font-weight: 600;
-  background: linear-gradient(135deg, #4b8cff, #8f7bff);
-  color: white;
+  background: linear-gradient(135deg, #8f7bff, #7c8cff);
+  color: #ffffff;
   cursor: pointer;
+  box-shadow: 0 10px 26px rgba(125, 140, 255, 0.55);
+  transition: transform 0.12s ease, box-shadow 0.12s ease, opacity 0.12s ease;
 }
 
-/* ---------- 하단 네비 ---------- */
-
-.bottomNav {
-  margin-top: auto;  /* flex 컨테이너(=container)에서 맨 아래로 밀기 */
-  padding: 0.3rem 1rem calc(0.6rem + env(safe-area-inset-bottom));
-  display: flex;
-  justify-content: space-between;
-  gap: 0.6rem;
-  background: rgba(0, 0, 0, 0.45);
-  backdrop-filter: blur(10px);
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
+.primaryButton:disabled {
+  opacity: 0.55;
+  box-shadow: none;
+  cursor: default;
 }
 
-.navItem {
-  flex: 1;
-  border-radius: 999px;
-  padding: 0.45rem 0.8rem;
-  border: 1px solid transparent;
-  background: rgba(0, 0, 0, 0.3);
-  font-size: 0.8rem;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.1rem;
-  color: white;
-  cursor: pointer;
+.primaryButton:not(:disabled):active {
+  transform: scale(0.97);
+  box-shadow: 0 6px 18px rgba(125, 140, 255, 0.5);
 }
 
-.navItemActive {
-  border-color: rgba(255, 255, 255, 0.4);
-}
-
-/* 결과 영역 위 여백 추가 */
-.resultSection {
-  margin-top: 1.1rem;
-}
+/* 에러 텍스트 */
 
 .errorText {
-  margin-top: 0.4rem;
+  margin-top: 6px;
   font-size: 0.78rem;
-  color: #ff8080;
-  opacity: 0.9;
+  color: #fecaca;
 }
 
-/* -------- Insight 카드 전체 -------- */
+/* ====== 결과 영역 ====== */
+
+.resultSection {
+  margin-top: 18px;
+}
+
+/* 결과 없을 때 플레이스홀더 */
+
+.placeholderCard {
+  border-radius: 18px;
+  padding: 16px 14px;
+  background: rgba(15, 23, 42, 0.9);
+  border: 1px dashed rgba(148, 163, 184, 0.6);
+}
+
+.mutedText {
+  font-size: 0.78rem;
+  line-height: 1.5;
+  color: rgba(148, 163, 184, 0.95);
+  text-align: center;
+}
+
+/* ====== Insight 카드 ====== */
 
 .spiritCard {
-  margin-top: 0.4rem;
-  padding: 1rem 1rem 0.8rem;
-  border-radius: 18px;
-  background:
-    radial-gradient(circle at top left, rgba(129, 140, 248, 0.25), transparent 55%),
-    rgba(0, 0, 0, 0.6);
-  border: 1px solid rgba(148, 163, 255, 0.5);
-  box-shadow: 0 16px 28px rgba(15, 23, 42, 0.75);
+  border-radius: 22px;
+  padding: 14px 16px 14px;
+  background: radial-gradient(circle at top left, rgba(129, 140, 248, 0.2), rgba(15, 23, 42, 0.98));
+  border: 1px solid rgba(191, 219, 254, 0.45);
+  box-shadow:
+    0 16px 40px rgba(15, 23, 42, 0.9),
+    0 0 36px rgba(129, 140, 248, 0.4);
 }
 
-/* 헤더 : 이모지 + 이름 + 레어리티 + 날짜 */
+/* 헤더 전체: 왼쪽(제목/희귀도) + 오른쪽(날짜) */
 
 .spiritHeader {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
   gap: 0.75rem;
-  margin-bottom: 0.7rem;
+  margin-bottom: 0.6rem;
 }
+
+.spiritHeaderLeft {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+/* 이모지 + 제목 한 줄 */
 
 .spiritTitleRow {
   display: flex;
   align-items: center;
-  gap: 0.55rem;
+  gap: 0.45rem;
 }
 
 .spiritEmoji {
-  font-size: 1.6rem;
-}
-
-.spiritTitleTexts {
-  display: flex;
-  flex-direction: column;
-  gap: 0.15rem;
+  font-size: 1.4rem;
 }
 
 .spiritName {
   font-size: 1.05rem;
-  font-weight: 600;
+  font-weight: 700;
 }
+
+/* 희귀도 배지: 제목 아래 */
 
 .spiritRarity {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   align-self: flex-start;
-  padding: 0.1rem 0.6rem;
+  padding: 2px 10px;
   border-radius: 999px;
-  font-size: 0.72rem;
-  text-transform: uppercase;
+  border: 1px solid rgba(191, 219, 254, 0.7);
+  font-size: 0.7rem;
   letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(226, 232, 240, 0.95);
   background: rgba(15, 23, 42, 0.9);
-  border: 1px solid rgba(148, 163, 255, 0.8);
 }
 
-/* 레어리티별 색상 */
-.rarityCommon {
-  background: rgba(148, 163, 184, 0.18);
-  border-color: rgba(148, 163, 184, 0.9);
-}
-.rarityRare {
-  background: rgba(56, 189, 248, 0.18);
-  border-color: rgba(56, 189, 248, 0.9);
-}
-.rarityEpic {
-  background: rgba(244, 114, 182, 0.22);
-  border-color: rgba(244, 114, 182, 0.95);
-}
-.rarityMythic {
-  background: rgba(250, 204, 21, 0.22);
-  border-color: rgba(250, 204, 21, 0.95);
-}
+/* 날짜: 오른쪽 위 정렬 */
 
 .spiritDate {
-  font-size: 0.7rem;
-  opacity: 0.7;
+  font-size: 0.78rem;
+  color: rgba(148, 163, 184, 0.95);
+  white-space: nowrap;
+  margin-top: 0.15rem;
 }
 
-/* 본문 섹션들 */
-
 .spiritBody {
-  display: flex;
-  flex-direction: column;
-  gap: 0.7rem;
+  margin-top: 6px;
 }
 
 .spiritSection {
-  padding-top: 0.55rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  margin-top: 8px;
 }
 
 .sectionLabel {
-  font-size: 0.72rem;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  opacity: 0.7;
-  margin-bottom: 0.15rem;
+  font-size: 0.78rem;
+  color: rgba(148, 163, 184, 0.95);
+  margin-top: 4px;
+  margin-bottom: 2px;
 }
 
 .sectionTitle {
-  font-size: 0.9rem;
+  font-size: 0.92rem;
   font-weight: 600;
-  margin-bottom: 0.1rem;
+  margin-bottom: 2px;
 }
 
 .sectionText {
-  font-size: 0.8rem;
+  font-size: 0.84rem;
   line-height: 1.5;
-  opacity: 0.9;
+  color: rgba(226, 232, 240, 0.95);
 }
 
-/* 스토리 섹션은 살짝 박스 느낌으로 */
-
-.storySection {
-  border-top: none;
-  margin-top: 0.2rem;
-  padding: 0.6rem 0.7rem;
-  border-radius: 12px;
-  background: rgba(15, 23, 42, 0.85);
+.linkText {
+  font-size: 0.8rem;
+  color: #bfdbfe;
+  text-decoration: none;
 }
 
-/* 푸터 버튼 */
+.linkText:hover {
+  text-decoration: underline;
+}
 
 .spiritFooter {
-  margin-top: 0.75rem;
+  margin-top: 10px;
   display: flex;
   justify-content: flex-end;
 }
 
 .secondaryButton {
+  font-size: 0.8rem;
+  padding: 7px 12px;
   border-radius: 999px;
-  border: 1px solid rgba(148, 163, 255, 0.7);
-  padding: 0.4rem 0.9rem;
-  font-size: 0.78rem;
-  background: rgba(15, 23, 42, 0.9);
-  color: white;
+  border: 1px solid rgba(148, 163, 184, 0.7);
+  background: rgba(15, 23, 42, 0.85);
+  color: #e5e7eb;
   cursor: pointer;
+}
+
+/* ====== Collection 탭 ====== */
+
+.collectionGrid {
+  margin-top: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.collectionCard {
+  border-radius: 18px;
+  padding: 10px 11px;
+  background: rgba(15, 23, 42, 0.95);
+  border: 1px solid rgba(148, 163, 184, 0.5);
+}
+
+.collectionHeader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.collectionConcept {
+  font-size: 0.82rem;
+  color: rgba(226, 232, 240, 0.9);
+}
+
+.collectionProject {
+  margin-top: 2px;
+  font-size: 0.78rem;
+  color: rgba(148, 163, 184, 0.95);
+}
+
+/* ====== 하단 네비게이션 ====== */
+
+.bottomNav {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: 6px 18px 14px;
+  display: flex;
+  gap: 10px;
+  background: linear-gradient(to top, rgba(3, 7, 18, 0.95), rgba(3, 7, 18, 0.4));
+  backdrop-filter: blur(14px);
+  border-top: 1px solid rgba(31, 41, 55, 0.85);
+}
+
+.navItem {
+  flex: 1;
+  border-radius: 999px;
+  padding: 6px 0 5px;
+  border: 1px solid transparent;
+  background: rgba(15, 23, 42, 0.9);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  font-size: 0.78rem;
+  color: rgba(148, 163, 184, 0.95);
+}
+
+.navItemActive {
+  border-color: rgba(129, 140, 248, 0.9);
+  background: radial-gradient(circle at top, rgba(129, 140, 248, 0.35), rgba(15, 23, 42, 0.95));
+  color: #e5e7eb;
 }
 
 /* ------- Collection 캘린더 ------- */
@@ -547,7 +572,7 @@
 .detailLabel {
   font-size: 0.72rem;
   opacity: 0.7;
-  margin-top: 0.15rem;
+  margin-top: 0.4rem;
 }
 
 .detailText {
@@ -591,36 +616,76 @@
   margin-top: 1rem;
 }
 
-/* 일일 카드 한도 UI */
-
-.lifeWrapper {
-  margin-top: 1.1rem;          /* 위랑 조금 더 띄우고 */
-  margin-bottom: 1.3rem;       /* 아래도 여유 */
+.collectionModeToggle {
+  margin-top: 0.9rem;
+  display: inline-flex;
+  padding: 3px;
+  border-radius: 999px;
+  background: rgba(15, 23, 42, 0.9);
+  border: 1px solid rgba(148, 163, 184, 0.4);
+  gap: 4px;
 }
 
-.lifeHeader {
-  display: flex;
-  justify-content: flex-start;
-  gap: 8px;
-  align-items: center;
-  font-size: 0.8rem;
-  /* color: rgba(226, 232, 240, 0.95); */
-  margin-bottom: 0.25rem;
-}
-
-.lifeLabel {
-  opacity: 0.9;
-}
-
-.lifeCount {
-  opacity: 0.8;
-}
-
-.limitText {
-  margin-top: 0.2rem;
+.modeButton {
+  border: none;
+  background: transparent;
+  color: rgba(148, 163, 184, 0.9);
   font-size: 0.78rem;
-  color: rgba(226, 232, 240, 0.9);
+  padding: 6px 10px;
+  border-radius: 999px;
+  cursor: pointer;
 }
 
+.modeButtonActive {
+  background: radial-gradient(circle at top, rgba(129,140,248,0.5), rgba(15,23,42,1));
+  color: #f9fafb;
+}
 
+.conceptList {
+  margin-top: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+}
 
+.conceptRow {
+  padding: 0.8rem 0.9rem;
+  border-radius: 14px;
+  background: rgba(15, 23, 42, 0.9);
+  border: 1px solid rgba(148, 163, 184, 0.6);
+}
+
+.conceptRowHeader {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+  align-items: flex-start;
+  margin-bottom: 0.3rem;
+}
+
+.conceptName {
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.conceptDates {
+  margin-top: 2px;
+  font-size: 0.75rem;
+  color: rgba(148, 163, 184, 0.9);
+}
+
+.conceptLink {
+  font-size: 0.75rem;
+  color: #bfdbfe;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.conceptLink:hover {
+  text-decoration: underline;
+}
+
+.conceptDescription {
+  font-size: 0.8rem;
+  line-height: 1.5;
+  color: rgba(226, 232, 240, 0.96);
+}

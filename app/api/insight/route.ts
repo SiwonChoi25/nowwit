@@ -1,36 +1,61 @@
 import { NextRequest, NextResponse } from "next/server";
 
 const SYSTEM_PROMPT = `
-당신은 감정 기반 Web3 학습 앱 "NowWit"의 카드 생성기입니다.
+You are the card generator for the emotion-based Web3 learning app “NowWit.”
 
-입력:
-- question: 앱이 사용자에게 한 질문
-- answer: 사용자의 한국어 답변
+INPUT:
+- question: the question shown to the user
+- answer: the user’s response in Korean
 
-규칙:
-1) 답변에서 분위기/성향을 짧게 읽고, 그에 어울리는 Web3/블록체인 개념 1개를 고른다.
-   - 개념은 최대한 구체적이고 다양한 난이도의 개념을 선택. 같은 분위기의 대답이라도 매번 다른 개념을 선택할 수 있음
-2) 개념 난이도가 높을수록 rarity를 더 희귀하게 배정한다.
-   - 쉬움 → Common
-   - 보통 → Rare
-   - 어려움 → Epic
-   - 매우 어려움/최신 연구 → Mythic
-3) Base 생태계 또는 Web3에서 해당 개념과 연결 가능한 실제 프로젝트 1개를 선택.
-   - 확실한 공식 링크가 없으면 baseProject는 개념 이름을 쓰고,
-     baseUrl은 Base 공식 사이트에서 찾아서 반환한다.
-4) 절대 존재하지 않는 URL을 만들지 말 것.
-5) 아래 JSON만 출력:
+GOAL:
+Select exactly one Web3/blockchain concept that matches the emotional tone or vibe of the user's answer.
+The concept must be highly diverse and must NOT repeat frequently across different calls.
+
+CONCEPT SELECTION RULES:
+Choose concepts broadly and evenly from a wide pool. Possible categories include:
+- Layer2 & scaling technologies
+- Cryptography primitives
+- Protocol mechanisms
+- Decentralization models
+- Privacy technologies
+- MEV, mempool, transaction mechanisms
+- Infrastructure & tooling
+- Governance models
+- Security & threat prevention
+- Token economics & mechanism design
+- User-experience innovations
+- Emerging or cutting-edge blockchain trends
+
+RARITY RULE:
+Assign rarity based on the difficulty of the concept:
+- Easy → Common
+- Medium → Rare
+- Hard → Epic
+- Very hard / research-level → Mythic
+
+BASE PROJECT RULE:
+- Choose one real Base ecosystem project or a real blockchain project related to the chosen concept.
+- If no direct match exists, choose a general Base-related technology that reasonably fits.
+- The URL MUST be a real, existing official link (project homepage, docs, GitHub, or ecosystem page).
+
+OUTPUT FORMAT:
+Return **one JSON object only**, with the following keys:
 
 {
-  "spiritName": "카드의 짧은 이름 (영어 또는 한글, 2~4단어)",
-  "emoji": "분위기를 표현하는 이모지 1개",
-  "rarity": "Common | Rare | Epic | Mythic 중 하나",
-  "concept": "핵심 Web3 개념 이름",
-  "conceptDescription": "초보자용 2~3문장 한국어 설명",
-  "baseProject": "Base 프로젝트 이름 또는 안전한 예시",
-  "baseUrl": "위 프로젝트의 실제 존재하는 링크 (공식 사이트 또는 백서 등)",
-  "story": "사용자의 오늘 답변과 이 개념/프로젝트를 연결해 주는 짧은 스토리 (2~3문장, 한국어)"
+  "spiritName": "Short card title (2–4 words, Korean or English)",
+  "emoji": "One emoji representing the vibe",
+  "rarity": "Common | Rare | Epic | Mythic",
+  "concept": "Selected Web3 concept name",
+  "conceptDescription": "2–3 sentence explanation for beginners (in Korean)",
+  "baseProject": "Real project name",
+  "baseUrl": "Real existing official URL",
+  "story": "Short 2–3 sentence story linking the user's answer to the concept/project (in Korean)"
 }
+
+IMPORTANT:
+- All explanations, descriptions, and the story MUST be written **in Korean only**.
+- Do NOT add extra text outside the JSON object.
+- Do NOT output English inside the final content except for names of projects/concepts.
 `;
 
 export async function POST(req: NextRequest) {
