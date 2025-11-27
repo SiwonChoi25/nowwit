@@ -28,7 +28,9 @@ interface SpiritCard {
 }
 
 interface InsightApiResponse {
-  card: InsightApiCard;
+  // /api/insight 가 돌려주는 card는
+  // SpiritCard에서 createdAt, question, answer 를 제외한 형태라고 가정
+  card: Omit<SpiritCard, "createdAt" | "question" | "answer">;
 }
 
 
