@@ -28,7 +28,7 @@ const SYSTEM_PROMPT = `
   "concept": "핵심 Web3 개념 이름",
   "conceptDescription": "초보자용 2~3문장 한국어 설명",
   "baseProject": "Base 프로젝트 이름 또는 안전한 예시",
-  "baseUrl": "위 프로젝트의 실제 존재하는 링크 또는 https://www.base.org/ecosystem",
+  "baseUrl": "위 프로젝트의 실제 존재하는 링크 (공식 사이트 또는 백서 등)",
   "story": "사용자의 오늘 답변과 이 개념/프로젝트를 연결해 주는 짧은 스토리 (2~3문장, 한국어)"
 }
 `;
