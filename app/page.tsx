@@ -3,8 +3,11 @@
 import { useState, useEffect } from "react";
 import { useMiniKit } from "@coinbase/onchainkit/minikit";
 import styles from "./page.module.css";
+import { QUESTIONS } from "./data/questions";
 
-// Spirit 카드 타입 (UI 용)
+
+// ------ 타입 정의 ------
+
 type Rarity = "Common" | "Rare" | "Epic" | "Mythic";
 
 interface SpiritCard {
@@ -18,15 +21,28 @@ interface SpiritCard {
   baseUrl: string;
   story: string;
   createdAt: string;
+
+  // 기록용으로 질문/답도 같이 저장
+  question: string;
+  answer: string;
 }
 
-const QUESTIONS = [
-  "오늘의 기분은 어때?",
-  "지금 보는 창 밖의 풍경을 한 단어로 말해줘.",
-  "지금 가장 갖고 싶은 능력은 뭐야?",
-  "좋아하는 색깔은?",
-  "오늘 하루의 vibe를 한 문장으로 적어줘.",
-];
+
+const pickRandomQuestion = () =>
+  QUESTIONS[Math.floor(Math.random() * QUESTIONS.length)];
+
+const DAILY_LIMIT = 5;
+
+// YYYY-MM-DD (로컬 타임존 기준)
+const getLocalDateKey = (d: Date) =>
+  `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(
+    d.getDate(),
+  ).padStart(2, "0")}`;
+
+const LOCAL_STORAGE_KEY = "nowwit:collection";
+
+
+// =================== Home 컴포넌트 ===================
 
 export default function Home() {
   const { isFrameReady, setFrameReady, context } = useMiniKit();
@@ -37,6 +53,13 @@ export default function Home() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [currentCard, setCurrentCard] = useState<SpiritCard | null>(null);
   const [collection, setCollection] = useState<SpiritCard[]>([]);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  // 오늘 날짜 (로컬 기준)
+  const todayKey = getLocalDateKey(new Date());
+
+  // 캘린더용 선택 날짜
+  const [selectedDate, setSelectedDate] = useState<string | null>(null);
 
   // MiniKit 초기화
   useEffect(() => {
@@ -45,108 +68,210 @@ export default function Home() {
     }
   }, [setFrameReady, isFrameReady]);
 
-  // 처음 진입 시 랜덤 질문 세팅
+  // 초기 진입 시: 질문 하나 랜덤 세팅
   useEffect(() => {
-    if (!currentQuestion) {
-      const q = QUESTIONS[Math.floor(Math.random() * QUESTIONS.length)];
-      setCurrentQuestion(q);
-    }
-  }, [currentQuestion]);
+    setCurrentQuestion(pickRandomQuestion());
+  }, []);
 
+  // --- localStorage에서 collection 복원 ---
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    try {
+      const raw = window.localStorage.getItem(LOCAL_STORAGE_KEY);
+      if (raw) {
+        const parsed = JSON.parse(raw) as SpiritCard[];
+        setCollection(parsed);
+      }
+    } catch (e) {
+      console.error("Failed to load collection from localStorage", e);
+    }
+  }, []);
+
+  // --- collection 바뀔 때마다 localStorage에 저장 ---
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    try {
+      window.localStorage.setItem(
+        LOCAL_STORAGE_KEY,
+        JSON.stringify(collection),
+      );
+    } catch (e) {
+      console.error("Failed to save collection to localStorage", e);
+    }
+  }, [collection]);
+
+  // 날짜별로 카드 그룹핑
+  const cardsByDate = collection.reduce<Record<string, SpiritCard[]>>(
+    (acc, card) => {
+      const key = getLocalDateKey(new Date(card.createdAt));
+      if (!acc[key]) acc[key] = [];
+      acc[key].push(card);
+      return acc;
+    },
+    {},
+  );
+
+  // 처음 로드될 때, 컬렉션이 있으면 가장 최근 날짜를 선택
+  useEffect(() => {
+    if (!selectedDate && collection.length > 0) {
+      setSelectedDate(getLocalDateKey(new Date(collection[0].createdAt)));
+    }
+  }, [collection, selectedDate]);
+
+  // "다른 질문 받기" 버튼
   const handleNewQuestion = () => {
-    const q = QUESTIONS[Math.floor(Math.random() * QUESTIONS.length)];
-    setCurrentQuestion(q);
     setAnswer("");
     setCurrentCard(null);
+    setErrorMessage(null);
+    setCurrentQuestion(pickRandomQuestion());
   };
 
+  // Insight 카드 생성
   const handleGenerateSpirit = async () => {
     if (!answer.trim()) return;
 
+    // 오늘 만든 카드 수 계산
+    const todayUsage = collection.filter(
+      (c) => getLocalDateKey(new Date(c.createdAt)) === todayKey,
+    ).length;
+
+    if (todayUsage >= DAILY_LIMIT) {
+      setErrorMessage("오늘은 5장의 Insight 카드를 모두 만들었어요. 내일 다시 만나요 ✨");
+      return;
+    }
+
     setIsGenerating(true);
+    setErrorMessage(null);
 
-    // TODO: 여기서 /api/spirit 같은 API를 호출해서
-    // 실제 FLock 결과를 받아오면 됨.
-    // 일단은 UI 확인용 mock 데이터로 대체.
-    const now = new Date().toISOString();
+    try {
+      const res = await fetch("/api/insight", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          question: currentQuestion,
+          answer,
+        }),
+      });
 
-    const mockCard: SpiritCard = {
-      id: now,
-      spiritName: "Liquidity Flux",
-      emoji: "🌧️",
-      rarity: "Rare",
-      concept: "AMM (Automated Market Maker)",
-      conceptDescription:
-        "AMM은 비가 내리듯 계속 흘러가는 유동성을 자동으로 교환해주는 온체인 마켓 메커니즘이에요.",
-      baseProject: "Uniswap on Base",
-      baseUrl: "https://www.base.org/ecosystem",
-      story:
-        "지금의 너처럼, 이 Insight는 잔잔하지만 계속해서 변화하는 시장의 mood를 닮았어.",
-      createdAt: now,
-    };
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error((data as any).error || "Failed to generate insight");
+      }
 
-    setTimeout(() => {
-      setCurrentCard(mockCard);
+      const data = await res.json();
+
+      const nowIso = new Date().toISOString();
+
+      const newCard: SpiritCard = {
+        ...(data as any).card,
+        createdAt: nowIso,
+        question: currentQuestion,
+        answer,
+      };
+
+      setCurrentCard(newCard);
+
+      // 컬렉션에 바로 추가 (중복 방지)
+      setCollection((prev) =>
+        prev.find((c) => c.id === newCard.id) ? prev : [newCard, ...prev],
+      );
+    } catch (e) {
+      console.error(e);
+      setErrorMessage("카드 생성에 실패했어요. 잠시 후 다시 시도해주세요.");
+    } finally {
       setIsGenerating(false);
-    }, 500);
+    }
   };
 
-  const handleSaveToCollection = () => {
-    if (!currentCard) return;
-    setCollection((prev) =>
-      prev.find((c) => c.id === currentCard.id) ? prev : [currentCard, ...prev],
-    );
-  };
-
-  const renderHomeTab = () => (
-    <div className={styles.content}>
-      <div className={styles.mainCard}>
-        <div className={styles.headerRow}>
-          <div>
-            <p className={styles.greeting}>
-              GM, {context?.user?.displayName || "builder"} 👋
-            </p>
-            <h2 className={styles.title}>Today&apos;s NowWit</h2>
-            <p className={styles.cardSubtitle}>
-              아래 질문에 솔직하게 답해주면,
-              <br />
-              그 vibe에 어울리는 Web3 개념과 Base 프로젝트를
-              <br />
-              한 장의 Insight 카드로 만들어줄게요.
-            </p>
+  const renderHomeTab = () => {
+    const todayUsage = collection.filter(
+      (c) => getLocalDateKey(new Date(c.createdAt)) === todayKey,
+    ).length;
+    const remaining = Math.max(0, DAILY_LIMIT - todayUsage);
+    const isDailyLimitReached = remaining <= 0;
+  
+    return (
+      <div className={styles.content}>
+        <div className={styles.mainCard}>
+          <div className={styles.headerRow}>
+            <div>
+              <p className={styles.greeting}>
+                GM, {context?.user?.displayName || "builder"} 👋
+              </p>
+              <h2 className={styles.title}>Today&apos;s NowWit</h2>
+              <p className={styles.cardSubtitle}>
+                아래 질문에 솔직하게 답해주면,
+                <br />
+                그 vibe에 어울리는 Web3 개념과 Base 프로젝트를
+                <br />
+                한 장의 Insight 카드로 만들어줄게요.
+              </p>
+            </div>
           </div>
-        </div>
-
-        <div className={styles.questionCard}>
-          <div className={styles.questionHeader}>
-            <span className={styles.chip}>Q</span>
-            <span className={styles.questionText}>{currentQuestion}</span>
+  
+          {/* 🔹 일일 한도 표시 영역 */}
+          <div className={styles.lifeRow}>
+            <span className={styles.lifeLabel}>오늘 남은 카드</span>
+            <div className={styles.lifeIcons}>
+              {Array.from({ length: DAILY_LIMIT }).map((_, i) => (
+                <span
+                  key={i}
+                  className={i < remaining ? styles.lifeFull : styles.lifeEmpty}
+                >
+                  ★
+                </span>
+              ))}
+            </div>
+            <span className={styles.lifeCount}>
+              {remaining} / {DAILY_LIMIT}
+            </span>
+          </div>
+          {isDailyLimitReached && (
+            <p className={styles.limitText}>
+              오늘은 5장의 Insight 카드를 모두 모았어요. 내일 다시 만나요 ✨
+            </p>
+          )}
+  
+          <div className={styles.questionCard}>
+            <div className={styles.questionHeader}>
+              <span className={styles.chip}>Q</span>
+              <span className={styles.questionText}>{currentQuestion}</span>
+              <button
+                type="button"
+                className={styles.linkButton}
+                onClick={handleNewQuestion}
+              >
+                ↻
+              </button>
+            </div>
+  
+            <textarea
+              className={styles.answerInput}
+              placeholder="여기에 답을 적어줘요 :)"
+              value={answer}
+              onChange={(e) => setAnswer(e.target.value)}
+              rows={3}
+            />
+  
             <button
               type="button"
-              className={styles.linkButton}
-              onClick={handleNewQuestion}
+              className={styles.primaryButton}
+              onClick={handleGenerateSpirit}
+              disabled={!answer.trim() || isGenerating || isDailyLimitReached}
             >
-              다른 질문 받기 ↻
+              {isDailyLimitReached
+                ? "오늘 한도 소진"
+                : isGenerating
+                ? "Insight 생성 중..."
+                : "Insight 카드 만들기"}
             </button>
+  
+            {errorMessage && (
+              <p className={styles.errorText}>{errorMessage}</p>
+            )}
           </div>
-
-          <textarea
-            className={styles.answerInput}
-            placeholder="여기에 답을 적어줘요 :)"
-            value={answer}
-            onChange={(e) => setAnswer(e.target.value)}
-            rows={3}
-          />
-
-          <button
-            type="button"
-            className={styles.primaryButton}
-            onClick={handleGenerateSpirit}
-            disabled={!answer.trim() || isGenerating}
-          >
-            {isGenerating ? "Insight 생성 중..." : "Insight 카드 만들기"}
-          </button>
-        </div>
 
         <div className={styles.resultSection}>
           {!currentCard && (
@@ -162,11 +287,22 @@ export default function Home() {
           {currentCard && (
             <div className={styles.spiritCard}>
               <div className={styles.spiritHeader}>
-                <span className={styles.spiritEmoji}>{currentCard.emoji}</span>
-                <div>
-                  <p className={styles.spiritName}>{currentCard.spiritName}</p>
-                  <p className={styles.spiritRarity}>{currentCard.rarity}</p>
+                <div className={styles.spiritTitleRow}>
+                  <span className={styles.spiritEmoji}>{currentCard.emoji}</span>
+                  <div className={styles.spiritTitleTexts}>
+                    <p className={styles.spiritName}>{currentCard.spiritName}</p>
+                    <p
+                      className={`${styles.spiritRarity} ${
+                        styles["rarity" + currentCard.rarity] || ""
+                      }`}
+                    >
+                      {currentCard.rarity}
+                    </p>
+                  </div>
                 </div>
+                <p className={styles.spiritDate}>
+                  {new Date(currentCard.createdAt).toLocaleDateString("ko-KR")}
+                </p>
               </div>
 
               <div className={styles.spiritBody}>
@@ -193,68 +329,144 @@ export default function Home() {
                   </a>
                 </div>
 
-                <div className={styles.spiritSection}>
-                <p className={styles.sectionLabel}>Insight Note</p>
+                <div
+                  className={`${styles.spiritSection} ${styles.storySection}`}
+                >
+                  <p className={styles.sectionLabel}>Insight Note</p>
                   <p className={styles.sectionText}>{currentCard.story}</p>
                 </div>
-              </div>
-
-              <div className={styles.spiritFooter}>
-                <button
-                  type="button"
-                  className={styles.secondaryButton}
-                  onClick={handleSaveToCollection}
-                >
-                  이 카드를 컬렉션에 담기
-                </button>
               </div>
             </div>
           )}
         </div>
       </div>
     </div>
-  );
+    );
+  };
 
-  const renderCollectionTab = () => (
-    <div className={styles.content}>
-      <div className={styles.mainCard}>
-        <h2 className={styles.title}>NowWit Collection</h2>
-        <p className={styles.subtitle}>
-          지금까지 NowWit에서 만난 Insight 카드들이에요.
-        </p>
+  const renderCollectionTab = () => {
+    // 오늘 기준 달력 (현재 월)
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = today.getMonth(); // 0~11
 
-        {collection.length === 0 && (
-          <div className={styles.placeholderCard}>
-            <p className={styles.mutedText}>
-              아직 수집한 Insight 카드가 없어요.
-              <br />
-              Today 탭에서 첫 번째 Insight를 만들어볼까요? 🌟
+    const firstDay = new Date(year, month, 1);
+    const lastDay = new Date(year, month + 1, 0);
+    const daysInMonth = lastDay.getDate();
+
+    const days: Date[] = [];
+    for (let d = 1; d <= daysInMonth; d++) {
+      days.push(new Date(year, month, d));
+    }
+
+    const selectedCards = selectedDate ? cardsByDate[selectedDate] ?? [] : [];
+
+    return (
+      <div className={styles.content}>
+        <div className={styles.mainCard}>
+          <h2 className={styles.title}>NowWit Collection</h2>
+          <p className={styles.subtitle}>
+            지금까지 NowWit에서 만난 Insight 카드들을
+            <br />
+            캘린더로 한눈에 볼 수 있어요.
+          </p>
+
+          <div className={styles.calendarHeader}>
+            <p className={styles.calendarMonth}>
+              {year}년 {month + 1}월
+            </p>
+            <p className={styles.calendarHint}>
+              점이 찍힌 날짜를 눌러서 그날의 Insight를 확인해보세요.
             </p>
           </div>
-        )}
 
-        {collection.length > 0 && (
-          <div className={styles.collectionGrid}>
-            {collection.map((card) => (
-              <div key={card.id} className={styles.collectionCard}>
-                <div className={styles.collectionHeader}>
-                  <span className={styles.spiritEmoji}>{card.emoji}</span>
-                  <div>
-                    <p className={styles.spiritName}>{card.spiritName}</p>
-                    <p className={styles.spiritRarity}>{card.rarity}</p>
+          <div className={styles.calendarGrid}>
+            {days.map((day) => {
+              const key = getLocalDateKey(day);
+              const hasCards = !!cardsByDate[key];
+              const isSelected = selectedDate === key;
+
+              return (
+                <button
+                  key={key}
+                  type="button"
+                  onClick={() => hasCards && setSelectedDate(key)}
+                  className={
+                    isSelected
+                      ? `${styles.calendarCell} ${styles.calendarCellSelected}`
+                      : styles.calendarCell
+                  }
+                >
+                  <span className={styles.calendarDayNumber}>
+                    {day.getDate()}
+                  </span>
+                  {hasCards && <span className={styles.calendarDot} />}
+                </button>
+              );
+            })}
+          </div>
+
+          <div className={styles.calendarDetail}>
+            {selectedDate ? (
+              <>
+                <p className={styles.detailDateLabel}>
+                  {selectedDate} 의 Insight
+                </p>
+
+                {selectedCards.length === 0 && (
+                  <p className={styles.mutedText}>
+                    아직 이 날짜에는 Insight 카드가 없어요.
+                  </p>
+                )}
+
+                {selectedCards.map((card) => (
+                  <div key={card.id} className={styles.detailCard}>
+                  <div className={styles.detailCardHeader}>
+                    <span className={styles.spiritEmoji}>{card.emoji}</span>
+                    <div>
+                      <p className={styles.spiritName}>{card.spiritName}</p>
+                      <p
+                        className={`${styles.spiritRarity} ${
+                          styles["rarity" + card.rarity] || ""
+                        }`}
+                      >
+                        {card.rarity}
+                      </p>
+                    </div>
+                  </div>
+                
+                  {/* Q & A */}
+                  <div className={styles.detailQA}>
+                    <p className={styles.detailLabel}>Question</p>
+                    <p className={styles.detailText}>{card.question}</p>
+                    <p className={styles.detailLabel}>My Answer</p>
+                    <p className={styles.detailText}>{card.answer}</p>
+                  </div>
+                
+                  {/* Web3 개념 블록 */}
+                  <div className={styles.detailConceptBlock}>
+                    <p className={styles.detailLabel}>Web3 Insight</p>
+                    <p className={styles.detailConceptTitle}>{card.concept}</p>
+                    <p className={styles.detailText}>{card.conceptDescription}</p>
+                
+                    <p className={styles.detailLabel}>Base Example</p>
+                    <p className={styles.detailText}>{card.baseProject}</p>
                   </div>
                 </div>
-                <p className={styles.collectionConcept}>{card.concept}</p>
-                <p className={styles.collectionProject}>
-                  {card.baseProject}
-                </p>
-              </div>
-            ))}
+                ))}
+              </>
+            ) : (
+              <p className={styles.mutedText}>
+                아직 수집한 Insight 카드가 없어요.
+                <br />
+                Today 탭에서 첫 번째 Insight를 만들어볼까요? 🌟
+              </p>
+            )}
           </div>
-        )}
+        </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   const renderBottomNav = () => (
     <nav className={styles.bottomNav}>
@@ -285,7 +497,6 @@ export default function Home() {
     </nav>
   );
 
-  // 그냥 바로 메인 + 컬렉션 탭 구조 렌더
   return (
     <div className={styles.container}>
       <button className={styles.closeButton} type="button">
