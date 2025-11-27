@@ -27,6 +27,10 @@ interface SpiritCard {
   answer: string;
 }
 
+interface InsightApiResponse {
+  card: InsightApiCard;
+}
+
 
 const pickRandomQuestion = () =>
   QUESTIONS[Math.floor(Math.random() * QUESTIONS.length)];
@@ -131,20 +135,10 @@ export default function Home() {
   // Insight 카드 생성
   const handleGenerateSpirit = async () => {
     if (!answer.trim()) return;
-
-    // 오늘 만든 카드 수 계산
-    const todayUsage = collection.filter(
-      (c) => getLocalDateKey(new Date(c.createdAt)) === todayKey,
-    ).length;
-
-    if (todayUsage >= DAILY_LIMIT) {
-      setErrorMessage("오늘은 5장의 Insight 카드를 모두 만들었어요. 내일 다시 만나요 ✨");
-      return;
-    }
-
+  
     setIsGenerating(true);
     setErrorMessage(null);
-
+  
     try {
       const res = await fetch("/api/insight", {
         method: "POST",
@@ -154,26 +148,25 @@ export default function Home() {
           answer,
         }),
       });
-
+  
       if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        throw new Error((data as any).error || "Failed to generate insight");
+        // 에러 바디를 굳이 쓰지 않아도 되면 그냥 고정 메시지로
+        throw new Error("Failed to generate insight");
       }
-
-      const data = await res.json();
-
+  
+      const data: InsightApiResponse = await res.json();
+  
       const nowIso = new Date().toISOString();
-
+  
       const newCard: SpiritCard = {
-        ...(data as any).card,
+        ...data.card,
         createdAt: nowIso,
         question: currentQuestion,
         answer,
       };
-
+  
       setCurrentCard(newCard);
-
-      // 컬렉션에 바로 추가 (중복 방지)
+  
       setCollection((prev) =>
         prev.find((c) => c.id === newCard.id) ? prev : [newCard, ...prev],
       );
@@ -350,7 +343,6 @@ export default function Home() {
     const year = today.getFullYear();
     const month = today.getMonth(); // 0~11
 
-    const firstDay = new Date(year, month, 1);
     const lastDay = new Date(year, month + 1, 0);
     const daysInMonth = lastDay.getDate();
 
